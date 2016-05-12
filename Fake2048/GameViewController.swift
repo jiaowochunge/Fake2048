@@ -9,25 +9,47 @@
 import UIKit
 import SpriteKit
 
+protocol GameGestureProtocol {
+    func swipeGesture(direction: UISwipeGestureRecognizerDirection)
+}
+
 class GameViewController: UIViewController {
+    
+    var delegate: GameGestureProtocol?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let scene = GameScene(fileNamed:"GameScene") {
-            // Configure the view.
-            let skView = self.view as! SKView
-            skView.showsFPS = true
-            skView.showsNodeCount = true
-            
-            /* Sprite Kit applies additional optimizations to improve rendering performance */
-            skView.ignoresSiblingOrder = true
-            
-            /* Set the scale mode to scale to fit the window */
-            scene.scaleMode = .AspectFill
-            
-            skView.presentScene(scene)
-        }
+        let scene = GameScene(size:self.view.bounds.size)
+
+        // Configure the view.
+        let skView = self.view as! SKView
+        skView.showsFPS = true
+        skView.showsNodeCount = true
+        
+        /* Sprite Kit applies additional optimizations to improve rendering performance */
+        skView.ignoresSiblingOrder = true
+        
+        /* Set the scale mode to scale to fit the window */
+        scene.scaleMode = .AspectFill
+    
+        skView.presentScene(scene)
+        
+        delegate = scene
+        
+        // 添加手势
+        let leftSwipe = UISwipeGestureRecognizer(target: self, action: "swipeLeft:")
+        leftSwipe.direction = [.Left, .Right]
+        skView.addGestureRecognizer(leftSwipe)
+        let rightSwipe = UISwipeGestureRecognizer(target: self, action: "swipeRight:")
+        rightSwipe.direction = .Right
+        skView.addGestureRecognizer(rightSwipe)
+        let upSwipe = UISwipeGestureRecognizer(target: self, action: "swipeUp:")
+        upSwipe.direction = [.Up, .Down]
+        skView.addGestureRecognizer(upSwipe)
+        let downSwipe = UISwipeGestureRecognizer(target: self, action: "swipeDown:")
+        downSwipe.direction = .Down
+        skView.addGestureRecognizer(downSwipe)
     }
 
     override func shouldAutorotate() -> Bool {
@@ -50,4 +72,24 @@ class GameViewController: UIViewController {
     override func prefersStatusBarHidden() -> Bool {
         return true
     }
+}
+
+extension GameViewController {
+    
+    func swipeLeft(gesture: UIGestureRecognizer) {
+        delegate?.swipeGesture(.Left)
+    }
+    
+    func swipeRight(gesture: UIGestureRecognizer) {
+        delegate?.swipeGesture(.Right)
+    }
+    
+    func swipeUp(gesture: UIGestureRecognizer) {
+        delegate?.swipeGesture(.Up)
+    }
+    
+    func swipeDown(gesture: UIGestureRecognizer) {
+        delegate?.swipeGesture(.Down)
+    }
+    
 }

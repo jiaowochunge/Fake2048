@@ -8,6 +8,8 @@
 
 import SpriteKit
 
+let showTinyMap = true
+
 let LowTile: CGFloat = 10
 let MidTile: CGFloat = 20
 let HighTile: CGFloat = 30
@@ -31,6 +33,14 @@ class GameScene: SKScene {
     var startMenu: SKShapeNode!
     
     var hasStartGame: Bool = false
+    
+    var gameOver = false
+    
+    // 小地图
+    var tinyMap: SKLabelNode!
+    
+    // 这个线程安全吗？
+    var actionCount: Int = 0
     
     override func didMoveToView(view: SKView) {
         addDecorateNode()
@@ -96,6 +106,17 @@ class GameScene: SKScene {
         startLabel.verticalAlignmentMode = .Center
         startLabel.position = CGPointZero
         startMenu.addChild(startLabel)
+        
+        if showTinyMap {
+            tinyMap = SKLabelNode(text: nil)
+            tinyMap.fontSize = 10
+            tinyMap.fontName = "ArialMT"
+            tinyMap.fontColor = SKColor.blackColor()
+            tinyMap.verticalAlignmentMode = .Center
+            tinyMap.horizontalAlignmentMode = .Left
+            tinyMap.position = CGPoint(x: gameNameLabel.position.x, y: (screenSize.height - screenSize.width) / 6)
+            self.addChild(tinyMap)
+        }
     }
     
     func initGame() {
@@ -121,11 +142,15 @@ class GameScene: SKScene {
     
     func startGame() {
         // 重新开始
-        if hasStartGame {
+        if hasStartGame || gameOver {
+            if gameOver {
+                self.childNodeWithName("gameover")?.removeFromParent()
+            }
             tileBoard.removeAllChildren()
             
             initGame()
         }
+        gameOver = false
         hasStartGame = true
         
         let l = startMenu.children.first as! SKLabelNode
@@ -182,11 +207,74 @@ class GameScene: SKScene {
         // 标记方块
         tileMap[p.0][p.1] = t.level.rawValue
         
-        NSLog("add tile at \(p)")
+        if showTinyMap {
+            var s: String = ""
+            NSLog("=============================")
+            for i in 0..<tileColumn {
+                var vs: String = "|"
+                s += "|"
+                for j in 0..<tileColumn {
+                    s += " \(tileMap[i][j]) "
+                    vs += " \(tileMap[i][j]) "
+                }
+                s += "|"
+                vs += "|"
+                NSLog(vs)
+                s += "\n"
+            }
+            NSLog("=============================")
+            tinyMap.text = s
+        }
     }
+    
+    func detectGameOver() -> Bool {
+        // 还有0就还能玩
+        var hasSpace = false
+        for i in 0..<tileColumn {
+            for j in 0..<tileColumn {
+                if tileMap[i][j] == 0 {
+                    hasSpace = true
+                    break
+                }
+            }
+        }
+        if hasSpace {
+            return false
+        } else {
+            // 已经没有空间了，检测是否有相邻的两个方块相同
+            var alive = false
+            for i in 0..<tileColumn {
+                for j in 0..<tileColumn {
+                    // 左侧
+                    if j > 0 && tileMap[i][j] == tileMap[i][j - 1] {
+                        alive = true
+                        break
+                    }
+                    // 右侧
+                    if j < tileColumn - 2 && tileMap[i][j] == tileMap[i][j + 1] {
+                        alive = true
+                        break
+                    }
+                    // 上边
+                    if i > 0 && tileMap[i][j] == tileMap[i - 1][j] {
+                        alive = true
+                        break
+                    }
+                    // 下边
+                    if i < tileColumn - 2 && tileMap[i][j] == tileMap[i + 1][j] {
+                        alive = true
+                        break
+                    }
+                }
+            }
+            return !alive
+        }
+    }
+
 }
 
 extension GameScene {
+    
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         // 反正不支持多点触控，直接取第一个触摸点
         guard let touch = touches.first else {
@@ -199,24 +287,71 @@ extension GameScene {
             startGame()
         }
     }
+    
+    func inAnimation() -> Bool {
+        return actionCount != 0
+    }
+    
+    func actionStart() {
+        actionCount++
+    }
+    
+    func actionFinish() {
+        actionCount--
+    }
+    
 }
 
 extension GameScene: GameGestureProtocol {
     
     func swipeGesture(direction: UISwipeGestureRecognizerDirection) {
-        if !hasStartGame {
+        
+        // 变换坐标。这个变换是可逆的，变过去或变回来是同一个变换
+        let transformPosition = {
+            [unowned self] (x: Int, y: Int) -> (Int, Int) in
+            if direction == .Left {
+                // 无需变换
+                return (x, y)
+            } else if direction == .Right {
+                // 子数组倒序
+                return (x, self.tileColumn - 1 - y)
+            } else if direction == .Up {
+                // 旋转
+                return (self.tileColumn - 1 - y, x)
+            } else {
+                // 旋转
+                return (y, self.tileColumn - 1 - x)
+            }
+        }
+        let transformPositionReverse = {
+            [unowned self] (x: Int, y: Int) -> (Int, Int) in
+            if direction == .Left {
+                // 无需变换
+                return (x, y)
+            } else if direction == .Right {
+                // 子数组倒序
+                return (x, self.tileColumn - 1 - y)
+            } else if direction == .Up {
+                // 旋转
+                return (y, self.tileColumn - 1 - x)
+            } else {
+                // 旋转
+                return (self.tileColumn - 1 - y, x)
+            }
+        }
+        if !hasStartGame || gameOver || inAnimation() {
             return
         }
-        if direction == .Left {
-            
-        } else if direction == .Right {
-
-        } else if direction == .Up {
-
-        } else if direction == .Down {
-
-        } else {
-            assert(false)
+        // 方向向左时，二重循环访问的元素是正确的坐标，其他方向时访问坐标不对。我们对数组做对应变换
+        var transformMap = tileMap
+        // 方向向左时，不需要变换
+        if direction != .Left {
+            for i in 0..<tileColumn {
+                for j in 0..<tileColumn {
+                    let tp = transformPosition(i, j)
+                    transformMap[tp.0][tp.1] = tileMap[i][j]
+                }
+            }
         }
         // 是否有动作执行
         var hasAction = false
@@ -225,7 +360,7 @@ extension GameScene: GameGestureProtocol {
         // 采用两个数组辅助，statusMap是当前方块状态，levelUpMap代表判断过程中哪些方块要升级。status只负责移动方块判断，并不升级。因为如果前面遇到升级了，后面本不能升级的方块就能升级了。
         for i in 0..<tileColumn {
             // 行状态表
-            var statusMap = tileMap[i]
+            var statusMap = transformMap[i]
             // 升级表
             var levelUpMap: [Bool] = Array<Bool>(count: tileColumn, repeatedValue: false)
             var hasRowAction = false
@@ -243,11 +378,12 @@ extension GameScene: GameGestureProtocol {
                     // 前一格是空格，可以前移
                     if statusMap[j - 1 - k] == 0 {
                         moveDst--
-                    }
+                    } else {
                         // 前一格和当前格数字相同，且没有升过级，可以升级，可以移动。终止判断，不可能再前移了
-                    else if statusMap[j - 1 - k] == statusMap[j] && !levelUpMap[j - 1 - k] {
-                        moveDst--
-                        canLevelUp = true
+                        if statusMap[j - 1 - k] == statusMap[j] && !levelUpMap[j - 1 - k] {
+                            moveDst--
+                            canLevelUp = true
+                        }
                         break
                     }
                 }
@@ -258,23 +394,31 @@ extension GameScene: GameGestureProtocol {
                 hasRowAction = true
                 hasAction = true
                 
-                // 当前方块
-                let t = tileBoard.childNodeWithName("\(i),\(j)") as! NumTile
+                self.actionStart()
+                // 当前方块。地图数组已经经过变换，但元素名没有经过变换，要定位回去
+                let transformP = transformPositionReverse(i, j)
+                // 目标地点
+                let transformDstP = transformPositionReverse(i, moveDst)
+                let t = tileBoard.childNodeWithName("\(transformP.0),\(transformP.1)") as! NumTile
                 // 能升级时，移动的方块是要在升级方块之下的，升级的动作由不动的方块执行
                 if canLevelUp {
                     // 待升级方块
-                    let lt = tileBoard.childNodeWithName("\(i),\(moveDst)") as! NumTile
+                    let lt = tileBoard.childNodeWithName("\(transformDstP.0),\(transformDstP.1)") as! NumTile
                     // 更改层次结构
                     t.zPosition = MidTile
                     // 移动到目的地后直接移除掉。然后升级
-                    t.runAction(SKAction.moveTo(tilePosition(i, moveDst), duration: 0.3), completion: { () -> Void in
-                        t.removeFromParent()
+                    t.runAction(SKAction.moveTo(tilePosition(transformDstP), duration: 0.2), completion: { () -> Void in
                         lt.levelUp()
+                        t.removeFromParent()
+                        self.actionFinish()
                     })
                 } else {
                     // 移动到目的地
-                    t.runAction(SKAction.moveTo(tilePosition(i, moveDst), duration: 0.3))
-                    t.name = "\(i),\(moveDst)"
+                    t.runAction(SKAction.moveTo(tilePosition(transformDstP), duration: 0.2), completion: { () -> Void in
+                        self.actionFinish()
+                    })
+                    // 修改名字
+                    t.name = "\(transformDstP.0),\(transformDstP.1)"
                 }
                 // 修改临时状态
                 if canLevelUp {
@@ -290,13 +434,37 @@ extension GameScene: GameGestureProtocol {
                 for l in 0..<tileColumn {
                     finalRow[l] = levelUpMap[l] ? statusMap[l] + 1 : statusMap[l]
                 }
-                tileMap[i] = finalRow
+                transformMap[i] = finalRow
             }
         }
         if hasAction {
+            // 恢复变换
+            if direction == .Left {
+                tileMap = transformMap
+            } else {
+                for i in 0..<tileColumn {
+                    for j in 0..<tileColumn {
+                        let tp = transformPositionReverse(i, j)
+                        tileMap[tp.0][tp.1] = transformMap[i][j]
+                    }
+                }
+            }
             // 延迟0.3秒添加方块。意思是等移动动作完成后才添加新方块
-            tileBoard.runAction(SKAction.waitForDuration(0.3), completion: { () -> Void in
+            tileBoard.runAction(SKAction.waitForDuration(0.2), completion: { () -> Void in
                 self.addNewTile()
+                if self.detectGameOver() {
+                    let gameOver = SKLabelNode(text: "GAME OVER")
+                    gameOver.fontSize = 35
+                    gameOver.name = "gameover"
+                    gameOver.fontName = "Arial-BoldMT"
+                    gameOver.fontColor = SKColor.redColor()
+                    gameOver.verticalAlignmentMode = .Center
+                    gameOver.horizontalAlignmentMode = .Center
+                    gameOver.position = CGPoint(x: self.size.width / 2, y: (self.size.height - self.size.width) / 6)
+                    self.addChild(gameOver)
+                    
+                    self.gameOver = true
+                }
             })
         }
     }

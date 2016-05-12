@@ -56,13 +56,13 @@ class NumTile: SKNode {
         level.nextLevel()
         // 动画效果。先放大10%，再恢复原样
         numLabel.text = level.text
+        numLabel.fontColor = level.textColor
         
         backGround.fillColor = level.bgColor
         backGround.strokeColor = level.bgColor
         
-        let scale = SKAction.scaleBy(1.1, duration: 0.15)
-        backGround.runAction(SKAction.sequence([scale, scale.reversedAction()]))
-        
+        let scale = SKAction.scaleBy(1.1, duration: 0.1)
+        self.runAction(SKAction.sequence([scale, scale.reversedAction()]))
     }
     
 }

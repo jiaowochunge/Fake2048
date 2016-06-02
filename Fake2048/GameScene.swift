@@ -149,6 +149,8 @@ class GameScene: SKScene {
             tileBoard.removeAllChildren()
             
             initGame()
+            
+            self.view?.undoManager?.removeAllActions()
         }
         gameOver = false
         hasStartGame = true
@@ -207,24 +209,7 @@ class GameScene: SKScene {
         // 标记方块
         tileMap[p.0][p.1] = t.level.rawValue
         
-        if showTinyMap {
-            var s: String = ""
-            NSLog("=============================")
-            for i in 0..<tileColumn {
-                var vs: String = "|"
-                s += "|"
-                for j in 0..<tileColumn {
-                    s += " \(tileMap[i][j]) "
-                    vs += " \(tileMap[i][j]) "
-                }
-                s += "|"
-                vs += "|"
-                NSLog(vs)
-                s += "\n"
-            }
-            NSLog("=============================")
-            tinyMap.text = s
-        }
+        logStatus()
     }
     
     func detectGameOver() -> Bool {
@@ -270,6 +255,30 @@ class GameScene: SKScene {
             return !alive
         }
     }
+    
+    /**
+     打印游戏日志
+     */
+    func logStatus() {
+        if showTinyMap {
+            var s: String = ""
+            NSLog("=============================")
+            for i in 0..<tileColumn {
+                var vs: String = "|"
+                s += "|"
+                for j in 0..<tileColumn {
+                    s += " \(tileMap[i][j]) "
+                    vs += " \(tileMap[i][j]) "
+                }
+                s += "|"
+                vs += "|"
+                NSLog(vs)
+                s += "\n"
+            }
+            NSLog("=============================")
+            tinyMap.text = s
+        }
+    }
 
 }
 
@@ -298,6 +307,36 @@ extension GameScene {
     
     func actionFinish() {
         actionCount--
+    }
+    
+    // 后退一步
+    func restoreLastStep(state: [[Int]]) {
+        let snapShot = tileMap
+        self.view?.undoManager?.registerUndoWithTarget(self, selector: Selector("restoreLastStep:"), object: snapShot);
+        
+        tileBoard.removeAllChildren()
+        
+        tileMap = state
+        for i in 0..<tileColumn {
+            for j in 0..<tileColumn {
+                // 添加背景小方块
+                let tile = NumTile(length: tileLength)
+                tile.position = tilePosition(i, j)
+                tile.zPosition = LowTile
+                tileBoard.addChild(tile)
+                
+                if tileMap[i][j] != 0 {
+                    let t = NumTile(length: tileLength)
+                    t.level = TileLevel(rawValue: tileMap[i][j])!
+                    t.position = tilePosition(i, j)
+                    t.name = "\(i),\(j)"
+                    t.zPosition = HighTile
+                    tileBoard.addChild(t)
+                }
+            }
+        }
+        
+        logStatus()
     }
     
 }
@@ -342,6 +381,8 @@ extension GameScene: GameGestureProtocol {
         if !hasStartGame || gameOver || inAnimation() {
             return
         }
+        // 当前快照，用来支持undo操作
+        let snapShot = tileMap
         // 方向向左时，二重循环访问的元素是正确的坐标，其他方向时访问坐标不对。我们对数组做对应变换
         var transformMap = tileMap
         // 方向向左时，不需要变换
@@ -438,6 +479,8 @@ extension GameScene: GameGestureProtocol {
             }
         }
         if hasAction {
+            // 注册undo操作
+            self.view?.undoManager?.registerUndoWithTarget(self, selector: "restoreLastStep:", object: snapShot)
             // 恢复变换
             if direction == .Left {
                 tileMap = transformMap

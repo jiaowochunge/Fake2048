@@ -12,7 +12,15 @@ import SpriteKit
 class NumTile: SKNode {
     
     // 方块等级
-    var level: TileLevel
+    var level: TileLevel {
+        didSet {
+            numLabel.text = level.text
+            numLabel.fontColor = level.textColor
+            
+            backGround.fillColor = level.bgColor
+            backGround.strokeColor = level.bgColor
+        }
+    }
     
     // 方块背景。只是一个单纯的颜色节点
     var backGround: SKShapeNode

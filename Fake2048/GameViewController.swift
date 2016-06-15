@@ -9,13 +9,17 @@
 import UIKit
 import SpriteKit
 
-protocol GameGestureProtocol {
+protocol GameActionProtocol {
+    
     func swipeGesture(direction: UISwipeGestureRecognizerDirection)
+    
+    func loadGame(tileMap: [[Int]])
+    
 }
 
 class GameViewController: UIViewController {
     
-    var delegate: GameGestureProtocol?
+    var delegate: GameActionProtocol?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,6 +39,7 @@ class GameViewController: UIViewController {
     
         skView.presentScene(scene)
         
+        scene.gameDelegate = self
         delegate = scene
         
         // 添加手势
@@ -104,6 +109,33 @@ extension GameViewController {
     
     func swipeDown(gesture: UIGestureRecognizer) {
         delegate?.swipeGesture(.Down)
+    }
+    
+}
+
+extension GameViewController: GameDelegateProtocol {
+    
+    func saveGameDelegate() {
+        
+    }
+    
+    func loadGameDelegate() {
+        let vc = SaveGameCollectionViewController(collectionViewLayout: UICollectionViewFlowLayout())
+        vc.selectRecordHandler = {
+            (record: History) in
+            
+            // 根据 "," 分割字符串，将分隔后的字符串强转 Int
+            let tileMap1 = record.tile_map!.characters.split(",").map { Int(String($0))! }
+            // [Int] -> [[Int]]。分割成4个一组，将来需要修改
+            var tileMap2: [[Int]] = []
+            for i in 0..<4 {
+                let s = i * 4, e = i * 4 + 4
+                let t = tileMap1[s..<e]
+                tileMap2.append(Array<Int>(t))
+            }
+            self.delegate?.loadGame(tileMap2)
+        }
+        self.presentViewController(vc, animated: true, completion: nil)
     }
     
 }

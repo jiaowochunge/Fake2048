@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		52601D271D012D5D0043DD73 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 52601D251D012D5D0043DD73 /* Model.xcdatamodeld */; };
+		52601D2A1D012DE00043DD73 /* History+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52601D281D012DE00043DD73 /* History+CoreDataProperties.swift */; };
+		52601D2B1D012DE00043DD73 /* History.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52601D291D012DE00043DD73 /* History.swift */; };
+		5273EB261D0FFCA200285243 /* ModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5273EB251D0FFCA200285243 /* ModelController.swift */; };
+		5273EB281D10F9C400285243 /* SaveGameCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5273EB271D10F9C400285243 /* SaveGameCollectionViewController.swift */; };
+		5273EB2B1D10F9ED00285243 /* SaveGameCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5273EB291D10F9ED00285243 /* SaveGameCollectionViewCell.swift */; };
+		5273EB2C1D10F9ED00285243 /* SaveGameCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5273EB2A1D10F9ED00285243 /* SaveGameCollectionViewCell.xib */; };
 		5292C4D01CE1DA2B0065D364 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5292C4CF1CE1DA2B0065D364 /* AppDelegate.swift */; };
 		5292C4D41CE1DA2B0065D364 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5292C4D31CE1DA2B0065D364 /* GameScene.swift */; };
 		5292C4D61CE1DA2B0065D364 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5292C4D51CE1DA2B0065D364 /* GameViewController.swift */; };
@@ -17,6 +24,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		52601D261D012D5D0043DD73 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
+		52601D281D012DE00043DD73 /* History+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "History+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		52601D291D012DE00043DD73 /* History.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = History.swift; sourceTree = "<group>"; };
+		5273EB251D0FFCA200285243 /* ModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelController.swift; sourceTree = "<group>"; };
+		5273EB271D10F9C400285243 /* SaveGameCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SaveGameCollectionViewController.swift; sourceTree = "<group>"; };
+		5273EB291D10F9ED00285243 /* SaveGameCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SaveGameCollectionViewCell.swift; sourceTree = "<group>"; };
+		5273EB2A1D10F9ED00285243 /* SaveGameCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SaveGameCollectionViewCell.xib; sourceTree = "<group>"; };
 		5292C4CC1CE1DA2B0065D364 /* Fake2048.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fake2048.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5292C4CF1CE1DA2B0065D364 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5292C4D31CE1DA2B0065D364 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
@@ -39,6 +53,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		52601D241D012D480043DD73 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				52601D251D012D5D0043DD73 /* Model.xcdatamodeld */,
+				52601D281D012DE00043DD73 /* History+CoreDataProperties.swift */,
+				52601D291D012DE00043DD73 /* History.swift */,
+				5273EB251D0FFCA200285243 /* ModelController.swift */,
+			);
+			name = model;
+			sourceTree = "<group>";
+		};
 		5292C4C31CE1DA2B0065D364 = {
 			isa = PBXGroup;
 			children = (
@@ -58,10 +83,14 @@
 		5292C4CE1CE1DA2B0065D364 /* Fake2048 */ = {
 			isa = PBXGroup;
 			children = (
+				52601D241D012D480043DD73 /* model */,
 				5292C4CF1CE1DA2B0065D364 /* AppDelegate.swift */,
 				5292C4D31CE1DA2B0065D364 /* GameScene.swift */,
 				5292C4E51CE1DD300065D364 /* NumTile.swift */,
 				5292C4D51CE1DA2B0065D364 /* GameViewController.swift */,
+				5273EB271D10F9C400285243 /* SaveGameCollectionViewController.swift */,
+				5273EB291D10F9ED00285243 /* SaveGameCollectionViewCell.swift */,
+				5273EB2A1D10F9ED00285243 /* SaveGameCollectionViewCell.xib */,
 				5292C4D71CE1DA2B0065D364 /* Main.storyboard */,
 				5292C4DA1CE1DA2B0065D364 /* Assets.xcassets */,
 				5292C4DC1CE1DA2B0065D364 /* LaunchScreen.storyboard */,
@@ -131,6 +160,7 @@
 				5292C4DE1CE1DA2B0065D364 /* LaunchScreen.storyboard in Resources */,
 				5292C4DB1CE1DA2B0065D364 /* Assets.xcassets in Resources */,
 				5292C4D91CE1DA2B0065D364 /* Main.storyboard in Resources */,
+				5273EB2C1D10F9ED00285243 /* SaveGameCollectionViewCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,6 +173,12 @@
 			files = (
 				5292C4D41CE1DA2B0065D364 /* GameScene.swift in Sources */,
 				5292C4D61CE1DA2B0065D364 /* GameViewController.swift in Sources */,
+				5273EB2B1D10F9ED00285243 /* SaveGameCollectionViewCell.swift in Sources */,
+				5273EB281D10F9C400285243 /* SaveGameCollectionViewController.swift in Sources */,
+				52601D2B1D012DE00043DD73 /* History.swift in Sources */,
+				52601D2A1D012DE00043DD73 /* History+CoreDataProperties.swift in Sources */,
+				52601D271D012D5D0043DD73 /* Model.xcdatamodeld in Sources */,
+				5273EB261D0FFCA200285243 /* ModelController.swift in Sources */,
 				5292C4E61CE1DD300065D364 /* NumTile.swift in Sources */,
 				5292C4D01CE1DA2B0065D364 /* AppDelegate.swift in Sources */,
 			);
@@ -297,6 +333,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		52601D251D012D5D0043DD73 /* Model.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				52601D261D012D5D0043DD73 /* Model.xcdatamodel */,
+			);
+			currentVersion = 52601D261D012D5D0043DD73 /* Model.xcdatamodel */;
+			path = Model.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 5292C4C41CE1DA2B0065D364 /* Project object */;
 }

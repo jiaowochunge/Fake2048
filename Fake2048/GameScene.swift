@@ -14,7 +14,20 @@ let LowTile: CGFloat = 10
 let MidTile: CGFloat = 20
 let HighTile: CGFloat = 30
 
+/**
+ *	游戏进程代理
+ */
+protocol GameDelegateProtocol {
+    
+    func saveGameDelegate()
+    
+    func loadGameDelegate()
+    
+}
+
 class GameScene: SKScene {
+    
+    var gameDelegate: GameDelegateProtocol!
     
     var tileMap: [[Int]]!
     
@@ -32,6 +45,10 @@ class GameScene: SKScene {
     
     var startMenu: SKShapeNode!
     
+    var loadMenu: SKShapeNode!
+    
+    var saveMenu: SKShapeNode!
+    
     var hasStartGame: Bool = false
     
     var gameOver = false
@@ -45,11 +62,6 @@ class GameScene: SKScene {
     override func didMoveToView(view: SKView) {
         addDecorateNode()
         initGame()
-    }
-    
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-       /* Called when a touch begins */
-
     }
    
     override func update(currentTime: CFTimeInterval) {
@@ -117,6 +129,36 @@ class GameScene: SKScene {
             tinyMap.position = CGPoint(x: gameNameLabel.position.x, y: (screenSize.height - screenSize.width) / 6)
             self.addChild(tinyMap)
         }
+        
+        // 装载游戏
+        loadMenu = SKShapeNode(rect: CGRect(x: -37.5, y: -10, width: 75, height: 20), cornerRadius: 2)
+        loadMenu.strokeColor = SKColor(red: 124 / 255.0, green: 103 / 255.0, blue: 83 / 255.0, alpha: 1)
+        loadMenu.fillColor = loadMenu.strokeColor
+        loadMenu.position = CGPoint(x: 15 + CGRectGetWidth(loadMenu.frame) * 0.5, y: (screenSize.height - screenSize.width) / 3 - 20)
+        self.addChild(loadMenu)
+        
+        let loadLabel = SKLabelNode(text: "Load Game")
+        loadLabel.fontSize = 12
+        loadLabel.fontName = "Arial-BoldMT"
+        loadLabel.fontColor = SKColor.whiteColor()
+        loadLabel.verticalAlignmentMode = .Center
+        loadLabel.position = CGPointZero
+        loadMenu.addChild(loadLabel)
+        
+        // 保存游戏
+        saveMenu = SKShapeNode(rect: CGRect(x: -37.5, y: -10, width: 75, height: 20), cornerRadius: 2)
+        saveMenu.strokeColor = SKColor(red: 124 / 255.0, green: 103 / 255.0, blue: 83 / 255.0, alpha: 1)
+        saveMenu.fillColor = saveMenu.strokeColor
+        saveMenu.position = CGPoint(x: screenSize.width - 15 - CGRectGetWidth(saveMenu.frame) * 0.5, y: loadMenu.position.y)
+        self.addChild(saveMenu)
+        
+        let saveLabel = SKLabelNode(text: "Save Game")
+        saveLabel.fontSize = 12
+        saveLabel.fontName = "Arial-BoldMT"
+        saveLabel.fontColor = SKColor.whiteColor()
+        saveLabel.verticalAlignmentMode = .Center
+        saveLabel.position = CGPointZero
+        saveMenu.addChild(saveLabel)
     }
     
     func initGame() {
@@ -294,7 +336,20 @@ extension GameScene {
         // 是开始按钮
         if startMenu.containsPoint(touchPoint) {
             startGame()
+        } else if saveMenu.containsPoint(touchPoint) {
+            if !hasStartGame || gameOver {
+                return
+            }
+            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+            appDelegate.modelController.saveGame(tileMap)
+            
+            // 数据源是由自己管理的，外层controller不好处理。姑且通知下
+            gameDelegate.saveGameDelegate()
+        } else if loadMenu.containsPoint(touchPoint) {
+            // 什么都不做，由外层controller处理
+            gameDelegate.loadGameDelegate()
         }
+
     }
     
     func inAnimation() -> Bool {
@@ -341,7 +396,7 @@ extension GameScene {
     
 }
 
-extension GameScene: GameGestureProtocol {
+extension GameScene: GameActionProtocol {
     
     func swipeGesture(direction: UISwipeGestureRecognizerDirection) {
         
@@ -510,6 +565,10 @@ extension GameScene: GameGestureProtocol {
                 }
             })
         }
+    }
+    
+    func loadGame(tileMap: [[Int]]) {
+        
     }
     
 }

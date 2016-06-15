@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="9531" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="SaveGameCollectionViewCell" customModule="Fake2048" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="160" height="240"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="160" height="240"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ctq-9O-wRd">
+                        <rect key="frame" x="0.0" y="0.0" width="160" height="160"/>
+                        <constraints>
+                            <constraint firstAttribute="width" secondItem="ctq-9O-wRd" secondAttribute="height" multiplier="1:1" id="Psj-85-QXi"/>
+                        </constraints>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="T52-6S-iqL">
+                        <rect key="frame" x="65" y="162" width="31" height="15"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                        <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="P9M-0j-LwF">
+                        <rect key="frame" x="0.0" y="238" width="160" height="2"/>
+                        <color key="backgroundColor" red="0.32360938191413879" green="0.93426066637039185" blue="0.9993470311164856" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="2" id="zGB-70-kSx"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            </view>
+            <constraints>
+                <constraint firstItem="ctq-9O-wRd" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="K1s-rr-7lq"/>
+                <constraint firstAttribute="bottom" secondItem="P9M-0j-LwF" secondAttribute="bottom" id="Nom-8w-imr"/>
+                <constraint firstItem="T52-6S-iqL" firstAttribute="centerX" secondItem="gTV-IL-0wX" secondAttribute="centerX" id="Rng-JI-Ifv"/>
+                <constraint firstItem="P9M-0j-LwF" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="Wf8-BU-tCn"/>
+                <constraint firstAttribute="trailing" secondItem="ctq-9O-wRd" secondAttribute="trailing" id="bbH-lv-SBH"/>
+                <constraint firstItem="T52-6S-iqL" firstAttribute="top" secondItem="ctq-9O-wRd" secondAttribute="bottom" constant="2" id="csy-hC-fjo"/>
+                <constraint firstItem="ctq-9O-wRd" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="rqQ-rS-Gvu"/>
+                <constraint firstAttribute="trailing" secondItem="P9M-0j-LwF" secondAttribute="trailing" id="ysN-TX-Bhe"/>
+            </constraints>
+            <size key="customSize" width="160" height="240"/>
+            <connections>
+                <outlet property="modifyTime" destination="T52-6S-iqL" id="Cgp-Yd-yD0"/>
+                <outlet property="screenShot" destination="ctq-9O-wRd" id="aq0-Et-B3o"/>
+            </connections>
+            <point key="canvasLocation" x="441" y="264"/>
+        </collectionViewCell>
+    </objects>
+</document>

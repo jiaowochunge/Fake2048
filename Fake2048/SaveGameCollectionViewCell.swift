@@ -21,7 +21,7 @@ class SaveGameCollectionViewCell: UICollectionViewCell {
                 screenShot.image = UIImage(data: h.screen_shot!)
                 
                 let dateFormatter = NSDateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
+                dateFormatter.dateFormat = "yyyy-MM-dd hh:mm"
                 modifyTime.text = dateFormatter.stringFromDate(h.modify_date!)
             } else {
                 screenShot.image = nil

@@ -105,8 +105,7 @@ extension ModelController {
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         let window = appDelegate.window!
         UIGraphicsBeginImageContext(window.frame.size)
-        let ctx = UIGraphicsGetCurrentContext()!
-        window.layer.renderInContext(ctx)
+        window.drawViewHierarchyInRect(window.frame, afterScreenUpdates: true)
         let screenShot = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         

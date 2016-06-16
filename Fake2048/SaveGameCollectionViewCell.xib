@@ -3,7 +3,6 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
@@ -14,15 +13,12 @@
             <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
                 <rect key="frame" x="0.0" y="0.0" width="160" height="240"/>
                 <subviews>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ctq-9O-wRd">
-                        <rect key="frame" x="0.0" y="0.0" width="160" height="160"/>
-                        <constraints>
-                            <constraint firstAttribute="width" secondItem="ctq-9O-wRd" secondAttribute="height" multiplier="1:1" id="Psj-85-QXi"/>
-                        </constraints>
+                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ctq-9O-wRd">
+                        <rect key="frame" x="0.0" y="0.0" width="160" height="218"/>
                     </imageView>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="T52-6S-iqL">
-                        <rect key="frame" x="65" y="162" width="31" height="15"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                        <rect key="frame" x="67" y="222" width="27" height="12"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="10"/>
                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                         <nil key="highlightedColor"/>
                     </label>
@@ -36,13 +32,15 @@
                 </subviews>
                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
             </view>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
             <constraints>
                 <constraint firstItem="ctq-9O-wRd" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="K1s-rr-7lq"/>
                 <constraint firstAttribute="bottom" secondItem="P9M-0j-LwF" secondAttribute="bottom" id="Nom-8w-imr"/>
                 <constraint firstItem="T52-6S-iqL" firstAttribute="centerX" secondItem="gTV-IL-0wX" secondAttribute="centerX" id="Rng-JI-Ifv"/>
                 <constraint firstItem="P9M-0j-LwF" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="Wf8-BU-tCn"/>
+                <constraint firstItem="P9M-0j-LwF" firstAttribute="top" secondItem="T52-6S-iqL" secondAttribute="bottom" constant="4" id="bQN-MQ-peh"/>
                 <constraint firstAttribute="trailing" secondItem="ctq-9O-wRd" secondAttribute="trailing" id="bbH-lv-SBH"/>
-                <constraint firstItem="T52-6S-iqL" firstAttribute="top" secondItem="ctq-9O-wRd" secondAttribute="bottom" constant="2" id="csy-hC-fjo"/>
+                <constraint firstItem="T52-6S-iqL" firstAttribute="top" secondItem="ctq-9O-wRd" secondAttribute="bottom" constant="4" id="csy-hC-fjo"/>
                 <constraint firstItem="ctq-9O-wRd" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="rqQ-rS-Gvu"/>
                 <constraint firstAttribute="trailing" secondItem="P9M-0j-LwF" secondAttribute="trailing" id="ysN-TX-Bhe"/>
             </constraints>

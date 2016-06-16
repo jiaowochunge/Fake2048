@@ -508,12 +508,18 @@ extension GameScene: GameActionProtocol {
                         t.removeFromParent()
                         self.actionFinish()
                     })
+                    /** 修改名字。这里总算明白这个bug了。假设有某串数字是这样的"2, 2, 1, 1"，如果这里不修改名字，会产生这样一个bug:
+                        1、第二个2与第一个2合并，忘了修改名字，第二个2名字序号依然是1
+                        2、第一个1移动到｀1｀位，修改名字后序号是1，第二个1与第一个1合并，这时，第二个2与第一个1的名字是一样的，取错元素了，所以第二个升级动画失败
+                        3、为了修复上述的bug，将这个即将remove的元素，名字改成一个特殊的索引，驱逐之。
+                    */
+                    t.name = "-1,-1"
                 } else {
                     // 移动到目的地
                     t.runAction(SKAction.moveTo(tilePosition(transformDstP), duration: 0.2), completion: { () -> Void in
                         self.actionFinish()
                     })
-                    // 修改名字
+                    // 修改名字。这个是立即执行的
                     t.name = "\(transformDstP.0),\(transformDstP.1)"
                 }
                 // 修改临时状态
@@ -568,7 +574,36 @@ extension GameScene: GameActionProtocol {
     }
     
     func loadGame(tileMap: [[Int]]) {
+        // 清理后退栈
+        self.view?.undoManager?.removeAllActions()
         
+        // 重新开始
+        self.gameOver = false
+        self.hasStartGame = true
+        self.tileMap = tileMap
+        
+        tileBoard.removeAllChildren()
+
+        for i in 0..<tileColumn {
+            for j in 0..<tileColumn {
+                // 添加背景小方块
+                let tile = NumTile(length: tileLength)
+                tile.position = tilePosition(i, j)
+                tile.zPosition = LowTile
+                tileBoard.addChild(tile)
+                
+                if tileMap[i][j] != 0 {
+                    let t = NumTile(length: tileLength)
+                    t.level = TileLevel(rawValue: tileMap[i][j])!
+                    t.position = tilePosition(i, j)
+                    t.name = "\(i),\(j)"
+                    t.zPosition = HighTile
+                    tileBoard.addChild(t)
+                }
+            }
+        }
+        
+        logStatus()
     }
     
 }

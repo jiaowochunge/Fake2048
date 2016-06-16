@@ -16,6 +16,7 @@ class NumTile: SKNode {
         didSet {
             numLabel.text = level.text
             numLabel.fontColor = level.textColor
+            numLabel.fontSize = level.textSize
             
             backGround.fillColor = level.bgColor
             backGround.strokeColor = level.bgColor
@@ -30,12 +31,6 @@ class NumTile: SKNode {
     
     init(length: CGFloat) {
         level = .L0
-        // 10%的机会出现4，90%机会出现2
-//        if random() % 10 == 9 {
-//            level = .L2
-//        } else {
-//            level = .L1
-//        }
         
         backGround = SKShapeNode(rect: CGRect(x: -length / 2, y: -length / 2, width: length, height: length), cornerRadius: 3)
         backGround.fillColor = level.bgColor
@@ -43,7 +38,7 @@ class NumTile: SKNode {
         
         numLabel = SKLabelNode(text: level.text)
         numLabel.fontColor = level.textColor
-        numLabel.fontSize = 30
+        numLabel.fontSize = level.textSize
         numLabel.fontName = "Arial-BoldMT"
         // 垂直居中。默认值不垂直
         numLabel.verticalAlignmentMode = .Center
@@ -65,6 +60,7 @@ class NumTile: SKNode {
         // 动画效果。先放大10%，再恢复原样
         numLabel.text = level.text
         numLabel.fontColor = level.textColor
+        numLabel.fontSize = level.textSize
         
         backGround.fillColor = level.bgColor
         backGround.strokeColor = level.bgColor
@@ -105,7 +101,7 @@ enum TileLevel: Int {
             case .L9:
                 return SKColor(red: 231 / 255.0, green: 190 / 255.0, blue: 64 / 255.0, alpha: 1)
             default:
-                return SKColor.blueColor()
+                return SKColor(red: 237 / 255.0, green: 194 / 255.0, blue: 46 / 255.0, alpha: 1)
             }
         }
     }
@@ -131,6 +127,16 @@ enum TileLevel: Int {
                 return SKColor.grayColor()
             } else {
                 return SKColor.whiteColor()
+            }
+        }
+    }
+    
+    var textSize: CGFloat {
+        get {
+            if self.rawValue < 10 {
+                return 30
+            } else {
+                return 24
             }
         }
     }

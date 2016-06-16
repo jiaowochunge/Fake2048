@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-let showTinyMap = true
+let showTinyMap = false
 
 let LowTile: CGFloat = 10
 let MidTile: CGFloat = 20

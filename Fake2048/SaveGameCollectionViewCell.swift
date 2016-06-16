@@ -14,6 +14,8 @@ class SaveGameCollectionViewCell: UICollectionViewCell {
     
     @IBOutlet var modifyTime: UILabel!
     
+    @IBOutlet var deleteButton: UIButton!
+    
     /// 计算属性，并不存储什么，其实本质是个setter方法
     var record: History? {
         set {

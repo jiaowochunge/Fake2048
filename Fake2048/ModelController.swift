@@ -116,7 +116,7 @@ extension ModelController {
     }
     
     /**
-     查询保存纪录
+     查询保存记录
      
      - returns: 历史记录
      */
@@ -127,6 +127,17 @@ extension ModelController {
         } catch {
             fatalError("Failed to fetch employees: \(error)")
         }
+    }
+    
+    /**
+     删除记录
+     
+     - parameter record:	目标记录
+     */
+    func deleteRecord(record: History) {
+        managedObjectContext.deleteObject(record)
+        
+        saveContext()
     }
     
 }

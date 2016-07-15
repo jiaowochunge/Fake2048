@@ -29,6 +29,12 @@ class GameScene: SKScene {
     
     var gameDelegate: GameDelegateProtocol!
     
+    /// 是否正在动画过程中
+    var inAnimation = false
+    
+    /// 同步动画组序列
+    lazy var animationGroup = dispatch_group_create()
+    
     var tileMap: [[Int]]!
     
     /// 方块容器
@@ -55,9 +61,6 @@ class GameScene: SKScene {
     
     // 小地图
     var tinyMap: SKLabelNode!
-    
-    // 这个线程安全吗？
-    var actionCount: Int = 0
     
     override func didMoveToView(view: SKView) {
         addDecorateNode()
@@ -242,7 +245,7 @@ class GameScene: SKScene {
     func addNewTile() {
         let p = randomPosition()
         let t = NumTile(length: tileLength)
-        t.position = tilePosition(p)
+        t.position = tilePosition(p.0, p.1)
         t.name = "\(p.0),\(p.1)"
         t.zPosition = HighTile
         tileBoard.addChild(t)
@@ -352,22 +355,10 @@ extension GameScene {
 
     }
     
-    func inAnimation() -> Bool {
-        return actionCount != 0
-    }
-    
-    func actionStart() {
-        actionCount++
-    }
-    
-    func actionFinish() {
-        actionCount--
-    }
-    
     // 后退一步
     func restoreLastStep(state: [[Int]]) {
         let snapShot = tileMap
-        self.view?.undoManager?.registerUndoWithTarget(self, selector: Selector("restoreLastStep:"), object: snapShot);
+        self.view?.undoManager?.registerUndoWithTarget(self, selector: #selector(GameScene.restoreLastStep(_:)), object: snapShot);
         
         tileBoard.removeAllChildren()
         
@@ -433,7 +424,7 @@ extension GameScene: GameActionProtocol {
                 return (self.tileColumn - 1 - y, x)
             }
         }
-        if !hasStartGame || gameOver || inAnimation() {
+        if !hasStartGame || gameOver || inAnimation {
             return
         }
         // 当前快照，用来支持undo操作
@@ -449,6 +440,8 @@ extension GameScene: GameActionProtocol {
                 }
             }
         }
+        // 方块移动速度。0.1s移动一格
+        let moveSpeed: CGFloat = tileLength * 10
         // 是否有动作执行
         var hasAction = false
         // 算法：对每行依次执行算法，如果能移动，设置hasAction标识位，执行动作，随机空白位生成一个新的方块，判断是否game over。
@@ -473,11 +466,11 @@ extension GameScene: GameActionProtocol {
                 for k in 0...j-1 {
                     // 前一格是空格，可以前移
                     if statusMap[j - 1 - k] == 0 {
-                        moveDst--
+                        moveDst -= 1
                     } else {
                         // 前一格和当前格数字相同，且没有升过级，可以升级，可以移动。终止判断，不可能再前移了
                         if statusMap[j - 1 - k] == statusMap[j] && !levelUpMap[j - 1 - k] {
-                            moveDst--
+                            moveDst -= 1
                             canLevelUp = true
                         }
                         break
@@ -490,12 +483,17 @@ extension GameScene: GameActionProtocol {
                 hasRowAction = true
                 hasAction = true
                 
-                self.actionStart()
+                dispatch_group_enter(self.animationGroup)
+                
                 // 当前方块。地图数组已经经过变换，但元素名没有经过变换，要定位回去
                 let transformP = transformPositionReverse(i, j)
                 // 目标地点
                 let transformDstP = transformPositionReverse(i, moveDst)
+                let transformDstPos = tilePosition(transformDstP.0, transformDstP.1)
+                // 移动方块
                 let t = tileBoard.childNodeWithName("\(transformP.0),\(transformP.1)") as! NumTile
+                // 移动时间。保持所有动作速度相同
+                let moveDuration: NSTimeInterval = NSTimeInterval((fabs(t.position.x - transformDstPos.x) + fabs(t.position.y - transformDstPos.y)) / moveSpeed)
                 // 能升级时，移动的方块是要在升级方块之下的，升级的动作由不动的方块执行
                 if canLevelUp {
                     // 待升级方块
@@ -503,10 +501,10 @@ extension GameScene: GameActionProtocol {
                     // 更改层次结构
                     t.zPosition = MidTile
                     // 移动到目的地后直接移除掉。然后升级
-                    t.runAction(SKAction.moveTo(tilePosition(transformDstP), duration: 0.2), completion: { () -> Void in
+                    t.runAction(SKAction.moveTo(tilePosition(transformDstP.0, transformDstP.1), duration: moveDuration), completion: { () -> Void in
                         lt.levelUp()
                         t.removeFromParent()
-                        self.actionFinish()
+                        dispatch_group_leave(self.animationGroup)
                     })
                     /** 修改名字。这里总算明白这个bug了。假设有某串数字是这样的"2, 2, 1, 1"，如果这里不修改名字，会产生这样一个bug:
                         1、第二个2与第一个2合并，忘了修改名字，第二个2名字序号依然是1
@@ -516,8 +514,8 @@ extension GameScene: GameActionProtocol {
                     t.name = "-1,-1"
                 } else {
                     // 移动到目的地
-                    t.runAction(SKAction.moveTo(tilePosition(transformDstP), duration: 0.2), completion: { () -> Void in
-                        self.actionFinish()
+                    t.runAction(SKAction.moveTo(tilePosition(transformDstP.0, transformDstP.1), duration: moveDuration), completion: { () -> Void in
+                        dispatch_group_leave(self.animationGroup)
                     })
                     // 修改名字。这个是立即执行的
                     t.name = "\(transformDstP.0),\(transformDstP.1)"
@@ -541,7 +539,7 @@ extension GameScene: GameActionProtocol {
         }
         if hasAction {
             // 注册undo操作
-            self.view?.undoManager?.registerUndoWithTarget(self, selector: "restoreLastStep:", object: snapShot)
+            self.view?.undoManager?.registerUndoWithTarget(self, selector: #selector(GameScene.restoreLastStep(_:)), object: snapShot)
             // 恢复变换
             if direction == .Left {
                 tileMap = transformMap
@@ -553,8 +551,10 @@ extension GameScene: GameActionProtocol {
                     }
                 }
             }
-            // 延迟0.3秒添加方块。意思是等移动动作完成后才添加新方块
-            tileBoard.runAction(SKAction.waitForDuration(0.2), completion: { () -> Void in
+            self.inAnimation = true
+            // 所有动作结束后添加新方块
+            dispatch_group_notify(self.animationGroup, dispatch_get_main_queue(), {
+                self.inAnimation = false
                 self.addNewTile()
                 if self.detectGameOver() {
                     let gameOver = SKLabelNode(text: "GAME OVER")

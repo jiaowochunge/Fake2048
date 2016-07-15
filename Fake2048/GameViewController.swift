@@ -43,16 +43,16 @@ class GameViewController: UIViewController {
         delegate = scene
         
         // 添加手势
-        let leftSwipe = UISwipeGestureRecognizer(target: self, action: "swipeLeft:")
+        let leftSwipe = UISwipeGestureRecognizer(target: self, action: #selector(GameViewController.swipeLeft(_:)))
         leftSwipe.direction = [.Left, .Right]
         skView.addGestureRecognizer(leftSwipe)
-        let rightSwipe = UISwipeGestureRecognizer(target: self, action: "swipeRight:")
+        let rightSwipe = UISwipeGestureRecognizer(target: self, action: #selector(GameViewController.swipeRight(_:)))
         rightSwipe.direction = .Right
         skView.addGestureRecognizer(rightSwipe)
-        let upSwipe = UISwipeGestureRecognizer(target: self, action: "swipeUp:")
+        let upSwipe = UISwipeGestureRecognizer(target: self, action: #selector(GameViewController.swipeUp(_:)))
         upSwipe.direction = [.Up, .Down]
         skView.addGestureRecognizer(upSwipe)
-        let downSwipe = UISwipeGestureRecognizer(target: self, action: "swipeDown:")
+        let downSwipe = UISwipeGestureRecognizer(target: self, action: #selector(GameViewController.swipeDown(_:)))
         downSwipe.direction = .Down
         skView.addGestureRecognizer(downSwipe)
     }

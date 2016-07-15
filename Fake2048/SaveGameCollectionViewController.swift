@@ -39,7 +39,7 @@ class SaveGameCollectionViewController: UICollectionViewController {
         
         // 工具栏
         let toolbar = UIToolbar(frame: CGRect(x: 0, y: CGRectGetHeight(self.view.frame) - 44, width: CGRectGetWidth(self.view.frame), height: 44))
-        let cancelButton = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: "cancelSelectRecord:")
+        let cancelButton = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: #selector(SaveGameCollectionViewController.cancelSelectRecord(_:)))
         toolbar.setItems([cancelButton], animated: false)
         self.view.addSubview(toolbar)
     }
@@ -92,7 +92,7 @@ class SaveGameCollectionViewController: UICollectionViewController {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! SaveGameCollectionViewCell
     
         cell.record = saveRecords[indexPath.item]
-        cell.deleteButton.addTarget(self, action: "deleteRecord:", forControlEvents: .TouchUpInside)
+        cell.deleteButton.addTarget(self, action: #selector(SaveGameCollectionViewController.deleteRecord(_:)), forControlEvents: .TouchUpInside)
     
         return cell
     }

@@ -131,6 +131,7 @@
 				TargetAttributes = {
 					5292C4CB1CE1DA2B0065D364 = {
 						CreatedOnToolsVersion = 7.2;
+						DevelopmentTeam = 883YY8GPM9;
 					};
 				};
 			};
@@ -293,10 +294,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = Fake2048/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = edu.bolo.www.Fake2048;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "16a80d20-a819-4de9-8c60-5d5333dbc3e7";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -305,10 +308,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = Fake2048/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = edu.bolo.www.Fake2048;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "16a80d20-a819-4de9-8c60-5d5333dbc3e7";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;

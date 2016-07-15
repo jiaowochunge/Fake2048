@@ -13,7 +13,7 @@ protocol GameActionProtocol {
     
     func swipeGesture(direction: UISwipeGestureRecognizerDirection)
     
-    func loadGame(tileMap: [[Int]])
+    func loadGame(c: GameContext)
     
 }
 
@@ -123,17 +123,7 @@ extension GameViewController: GameDelegateProtocol {
         let vc = SaveGameCollectionViewController(collectionViewLayout: UICollectionViewFlowLayout())
         vc.selectRecordHandler = {
             (record: History) in
-            
-            // 根据 "," 分割字符串，将分隔后的字符串强转 Int
-            let tileMap1 = record.tile_map!.characters.split(",").map { Int(String($0))! }
-            // [Int] -> [[Int]]。分割成4个一组，将来需要修改
-            var tileMap2: [[Int]] = []
-            for i in 0..<4 {
-                let s = i * 4, e = i * 4 + 4
-                let t = tileMap1[s..<e]
-                tileMap2.append(Array<Int>(t))
-            }
-            self.delegate?.loadGame(tileMap2)
+            self.delegate?.loadGame(GameContext(record: record))
         }
         self.presentViewController(vc, animated: true, completion: nil)
     }

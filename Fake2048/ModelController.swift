@@ -91,14 +91,15 @@ extension ModelController {
      
      - parameter tileMap:	当前状态
      */
-    func saveGame(tileMap: [[Int]]) {
+    func saveGame(c: GameContext) {
         let record = NSEntityDescription.insertNewObjectForEntityForName("History", inManagedObjectContext: self.managedObjectContext) as! History
         // 这个没法设置自增长id，我们取2016年以来的时间戳，这样一方面是增长的，一方面不会溢出
         record.id = NSDate().timeIntervalSinceDate(relativeDate)
         record.create_date = NSDate()
         record.modify_date = NSDate()
+        record.dimension = c.dimension
         // ','分割的字符串
-        record.tile_map = tileMap.reduce("", combine: { (sum, ele) -> String in
+        record.tile_map = c.tileMap.reduce("", combine: { (sum, ele) -> String in
             return sum + ele.reduce("", combine: { $0 + "\($1)," })
         })
         // 截屏

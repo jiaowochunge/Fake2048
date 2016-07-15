@@ -19,5 +19,6 @@ extension History {
     @NSManaged var modify_date: NSDate?
     @NSManaged var screen_shot: NSData?
     @NSManaged var tile_map: String?
+    @NSManaged var dimension: NSNumber?
 
 }

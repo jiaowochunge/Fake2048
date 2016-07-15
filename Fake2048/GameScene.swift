@@ -25,9 +25,55 @@ protocol GameDelegateProtocol {
     
 }
 
+/// 游戏状态
+enum GameStatus {
+    /// 还没开始
+    case GameNotStart
+    /// 游戏中
+    case GameProcess
+    /// 完蛋了
+    case GameOver
+}
+
+/// 游戏配置上下文
+struct GameContext {
+    /// 地图
+    var tileMap: [[Int]]
+    /// 地图维度
+    var dimension: Int
+    
+    /// 游戏状态
+    var status: GameStatus = .GameNotStart
+    /// 已进行步数
+    var stepCount: Int = 0
+    /// 分数
+    var score: Int = 0
+    
+    init(dimension: Int = 4) {
+        self.dimension = dimension
+        tileMap = Array<[Int]>(count: dimension, repeatedValue: Array<Int>(count: dimension, repeatedValue: 0))
+    }
+    
+    init(record: History) {
+        self.dimension = record.dimension!.integerValue
+        // 根据 "," 分割字符串，将分隔后的字符串强转 Int
+        let tileMap1 = record.tile_map!.characters.split(",").map { Int(String($0))! }
+        // [Int] -> [[Int]]
+        var tileMap2: [[Int]] = []
+        for i in 0..<dimension {
+            let s = i * dimension, e = i * dimension + dimension
+            let t = tileMap1[s..<e]
+            tileMap2.append(Array<Int>(t))
+        }
+        self.tileMap = tileMap2
+    }
+}
+
 class GameScene: SKScene {
     
     var gameDelegate: GameDelegateProtocol!
+    
+    var context: GameContext
     
     /// 是否正在动画过程中
     var inAnimation = false
@@ -35,13 +81,13 @@ class GameScene: SKScene {
     /// 同步动画组序列
     lazy var animationGroup = dispatch_group_create()
     
-    var tileMap: [[Int]]!
+    // TODO: 使用 GameStatus 代替
+    var hasStartGame: Bool = false
+    
+    var gameOver = false
     
     /// 方块容器
     var tileBoard: SKShapeNode!
-    
-    /// 方阵纬度
-    let tileColumn: Int = 4
     
     /// 方块之间的间距
     let tileMargin: CGFloat = 10
@@ -55,12 +101,17 @@ class GameScene: SKScene {
     
     var saveMenu: SKShapeNode!
     
-    var hasStartGame: Bool = false
-    
-    var gameOver = false
-    
     // 小地图
     var tinyMap: SKLabelNode!
+    
+    override init(size: CGSize) {
+        context = GameContext()
+        super.init(size: size)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func didMoveToView(view: SKView) {
         addDecorateNode()
@@ -165,24 +216,17 @@ class GameScene: SKScene {
     }
     
     func initGame() {
-        tileLength = (tileBoard.frame.size.width - CGFloat(tileColumn + 1) * tileMargin) / CGFloat(tileColumn)
+        tileLength = (tileBoard.frame.size.width - CGFloat(context.dimension + 1) * tileMargin) / CGFloat(context.dimension)
 
-        tileMap = {
-            var tmpMap: [[Int]] = []
-            for i in (0..<tileColumn) {
-                var row: [Int] = []
-                for j in (0..<tileColumn) {
-                    row.append(0)
-                    // 添加背景小方块
-                    let tile = NumTile(length: tileLength)
-                    tile.position = tilePosition(i, j)
-                    tile.zPosition = LowTile
-                    tileBoard.addChild(tile)
-                }
-                tmpMap.append(row)
+        for i in (0..<context.dimension) {
+            for j in (0..<context.dimension) {
+                // 添加背景小方块
+                let tile = NumTile(length: tileLength)
+                tile.position = tilePosition(i, j)
+                tile.zPosition = LowTile
+                tileBoard.addChild(tile)
             }
-            return tmpMap
-        }()
+        }
     }
     
     func startGame() {
@@ -192,6 +236,8 @@ class GameScene: SKScene {
                 self.childNodeWithName("gameover")?.removeFromParent()
             }
             tileBoard.removeAllChildren()
+            
+            context = GameContext()
             
             initGame()
             
@@ -216,9 +262,9 @@ class GameScene: SKScene {
      */
     func randomPosition() -> (Int, Int) {
         var remainRoom: Array<(Int, Int)> = []
-        for i in (0..<tileColumn) {
-            for j in (0..<tileColumn) {
-                if tileMap[i][j] == 0 {
+        for i in (0..<context.dimension) {
+            for j in (0..<context.dimension) {
+                if context.tileMap[i][j] == 0 {
                     remainRoom.append((i, j))
                 }
             }
@@ -235,7 +281,7 @@ class GameScene: SKScene {
         */
         // 计算坐标
         var x1 = (CGFloat(y) + 1) * tileMargin + (CGFloat(y) + 0.5) * tileLength
-        var y1 = (CGFloat(tileColumn - 1 - x) + 1) * tileMargin + (CGFloat(tileColumn - 1 - x) + 0.5) * tileLength
+        var y1 = (CGFloat(context.dimension - 1 - x) + 1) * tileMargin + (CGFloat(context.dimension - 1 - x) + 0.5) * tileLength
         // 由于父坐标系的锚点在中心，需要偏移
         x1 -= tileBoard.frame.size.width / 2
         y1 -= tileBoard.frame.size.width / 2
@@ -252,7 +298,7 @@ class GameScene: SKScene {
         
         t.levelUp()
         // 标记方块
-        tileMap[p.0][p.1] = t.level.rawValue
+        context.tileMap[p.0][p.1] = t.level.rawValue
         
         logStatus()
     }
@@ -260,9 +306,9 @@ class GameScene: SKScene {
     func detectGameOver() -> Bool {
         // 还有0就还能玩
         var hasSpace = false
-        for i in 0..<tileColumn {
-            for j in 0..<tileColumn {
-                if tileMap[i][j] == 0 {
+        for i in 0..<context.dimension {
+            for j in 0..<context.dimension {
+                if context.tileMap[i][j] == 0 {
                     hasSpace = true
                     break
                 }
@@ -273,25 +319,25 @@ class GameScene: SKScene {
         } else {
             // 已经没有空间了，检测是否有相邻的两个方块相同
             var alive = false
-            for i in 0..<tileColumn {
-                for j in 0..<tileColumn {
+            for i in 0..<context.dimension {
+                for j in 0..<context.dimension {
                     // 左侧
-                    if j > 0 && tileMap[i][j] == tileMap[i][j - 1] {
+                    if j > 0 && context.tileMap[i][j] == context.tileMap[i][j - 1] {
                         alive = true
                         break
                     }
                     // 右侧
-                    if j < tileColumn - 2 && tileMap[i][j] == tileMap[i][j + 1] {
+                    if j < context.dimension - 2 && context.tileMap[i][j] == context.tileMap[i][j + 1] {
                         alive = true
                         break
                     }
                     // 上边
-                    if i > 0 && tileMap[i][j] == tileMap[i - 1][j] {
+                    if i > 0 && context.tileMap[i][j] == context.tileMap[i - 1][j] {
                         alive = true
                         break
                     }
                     // 下边
-                    if i < tileColumn - 2 && tileMap[i][j] == tileMap[i + 1][j] {
+                    if i < context.dimension - 2 && context.tileMap[i][j] == context.tileMap[i + 1][j] {
                         alive = true
                         break
                     }
@@ -308,12 +354,12 @@ class GameScene: SKScene {
         if showTinyMap {
             var s: String = ""
             NSLog("=============================")
-            for i in 0..<tileColumn {
+            for i in 0..<context.dimension {
                 var vs: String = "|"
                 s += "|"
-                for j in 0..<tileColumn {
-                    s += " \(tileMap[i][j]) "
-                    vs += " \(tileMap[i][j]) "
+                for j in 0..<context.dimension {
+                    s += " \(context.tileMap[i][j]) "
+                    vs += " \(context.tileMap[i][j]) "
                 }
                 s += "|"
                 vs += "|"
@@ -344,7 +390,7 @@ extension GameScene {
                 return
             }
             let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-            appDelegate.modelController.saveGame(tileMap)
+            appDelegate.modelController.saveGame(context)
             
             // 数据源是由自己管理的，外层controller不好处理。姑且通知下
             gameDelegate.saveGameDelegate()
@@ -357,23 +403,23 @@ extension GameScene {
     
     // 后退一步
     func restoreLastStep(state: [[Int]]) {
-        let snapShot = tileMap
+        let snapShot = context.tileMap
         self.view?.undoManager?.registerUndoWithTarget(self, selector: #selector(GameScene.restoreLastStep(_:)), object: snapShot);
         
         tileBoard.removeAllChildren()
         
-        tileMap = state
-        for i in 0..<tileColumn {
-            for j in 0..<tileColumn {
+        context.tileMap = state
+        for i in 0..<context.dimension {
+            for j in 0..<context.dimension {
                 // 添加背景小方块
                 let tile = NumTile(length: tileLength)
                 tile.position = tilePosition(i, j)
                 tile.zPosition = LowTile
                 tileBoard.addChild(tile)
                 
-                if tileMap[i][j] != 0 {
+                if context.tileMap[i][j] != 0 {
                     let t = NumTile(length: tileLength)
-                    t.level = TileLevel(rawValue: tileMap[i][j])!
+                    t.level = TileLevel(rawValue: context.tileMap[i][j])!
                     t.position = tilePosition(i, j)
                     t.name = "\(i),\(j)"
                     t.zPosition = HighTile
@@ -399,13 +445,13 @@ extension GameScene: GameActionProtocol {
                 return (x, y)
             } else if direction == .Right {
                 // 子数组倒序
-                return (x, self.tileColumn - 1 - y)
+                return (x, self.context.dimension - 1 - y)
             } else if direction == .Up {
                 // 旋转
-                return (self.tileColumn - 1 - y, x)
+                return (self.context.dimension - 1 - y, x)
             } else {
                 // 旋转
-                return (y, self.tileColumn - 1 - x)
+                return (y, self.context.dimension - 1 - x)
             }
         }
         let transformPositionReverse = {
@@ -415,28 +461,28 @@ extension GameScene: GameActionProtocol {
                 return (x, y)
             } else if direction == .Right {
                 // 子数组倒序
-                return (x, self.tileColumn - 1 - y)
+                return (x, self.context.dimension - 1 - y)
             } else if direction == .Up {
                 // 旋转
-                return (y, self.tileColumn - 1 - x)
+                return (y, self.context.dimension - 1 - x)
             } else {
                 // 旋转
-                return (self.tileColumn - 1 - y, x)
+                return (self.context.dimension - 1 - y, x)
             }
         }
         if !hasStartGame || gameOver || inAnimation {
             return
         }
         // 当前快照，用来支持undo操作
-        let snapShot = tileMap
+        let snapShot = context.tileMap
         // 方向向左时，二重循环访问的元素是正确的坐标，其他方向时访问坐标不对。我们对数组做对应变换
-        var transformMap = tileMap
+        var transformMap = context.tileMap
         // 方向向左时，不需要变换
         if direction != .Left {
-            for i in 0..<tileColumn {
-                for j in 0..<tileColumn {
+            for i in 0..<context.dimension {
+                for j in 0..<context.dimension {
                     let tp = transformPosition(i, j)
-                    transformMap[tp.0][tp.1] = tileMap[i][j]
+                    transformMap[tp.0][tp.1] = context.tileMap[i][j]
                 }
             }
         }
@@ -447,13 +493,13 @@ extension GameScene: GameActionProtocol {
         // 算法：对每行依次执行算法，如果能移动，设置hasAction标识位，执行动作，随机空白位生成一个新的方块，判断是否game over。
         // 每行算法：对每列依次执行判断。如果位置是空白，下一个；否则从前一个位置直到开头位置的方块依次检测，如果是空白，说明可以移动，如果和本方块一样，说明可以升级，终止判断，必然不能移动到更前面了。
         // 采用两个数组辅助，statusMap是当前方块状态，levelUpMap代表判断过程中哪些方块要升级。status只负责移动方块判断，并不升级。因为如果前面遇到升级了，后面本不能升级的方块就能升级了。
-        for i in 0..<tileColumn {
+        for i in 0..<context.dimension {
             // 行状态表
             var statusMap = transformMap[i]
             // 升级表
-            var levelUpMap: [Bool] = Array<Bool>(count: tileColumn, repeatedValue: false)
+            var levelUpMap: [Bool] = Array<Bool>(count: context.dimension, repeatedValue: false)
             var hasRowAction = false
-            for j in 0..<tileColumn {
+            for j in 0..<context.dimension {
                 // 第一个方块不会移动，没有方块不用理会
                 if j == 0 || statusMap[j] == 0 {
                     continue
@@ -530,8 +576,8 @@ extension GameScene: GameActionProtocol {
             }
             if hasRowAction {
                 // 修改地图状态
-                var finalRow: [Int] = Array<Int>(count: tileColumn, repeatedValue: 0)
-                for l in 0..<tileColumn {
+                var finalRow: [Int] = Array<Int>(count: context.dimension, repeatedValue: 0)
+                for l in 0..<context.dimension {
                     finalRow[l] = levelUpMap[l] ? statusMap[l] + 1 : statusMap[l]
                 }
                 transformMap[i] = finalRow
@@ -542,12 +588,12 @@ extension GameScene: GameActionProtocol {
             self.view?.undoManager?.registerUndoWithTarget(self, selector: #selector(GameScene.restoreLastStep(_:)), object: snapShot)
             // 恢复变换
             if direction == .Left {
-                tileMap = transformMap
+                context.tileMap = transformMap
             } else {
-                for i in 0..<tileColumn {
-                    for j in 0..<tileColumn {
+                for i in 0..<context.dimension {
+                    for j in 0..<context.dimension {
                         let tp = transformPositionReverse(i, j)
-                        tileMap[tp.0][tp.1] = transformMap[i][j]
+                        context.tileMap[tp.0][tp.1] = transformMap[i][j]
                     }
                 }
             }
@@ -573,28 +619,28 @@ extension GameScene: GameActionProtocol {
         }
     }
     
-    func loadGame(tileMap: [[Int]]) {
+    func loadGame(c: GameContext) {
         // 清理后退栈
         self.view?.undoManager?.removeAllActions()
         
         // 重新开始
         self.gameOver = false
         self.hasStartGame = true
-        self.tileMap = tileMap
+        self.context = c
         
         tileBoard.removeAllChildren()
 
-        for i in 0..<tileColumn {
-            for j in 0..<tileColumn {
+        for i in 0..<context.dimension {
+            for j in 0..<context.dimension {
                 // 添加背景小方块
                 let tile = NumTile(length: tileLength)
                 tile.position = tilePosition(i, j)
                 tile.zPosition = LowTile
                 tileBoard.addChild(tile)
                 
-                if tileMap[i][j] != 0 {
+                if context.tileMap[i][j] != 0 {
                     let t = NumTile(length: tileLength)
-                    t.level = TileLevel(rawValue: tileMap[i][j])!
+                    t.level = TileLevel(rawValue: context.tileMap[i][j])!
                     t.position = tilePosition(i, j)
                     t.name = "\(i),\(j)"
                     t.zPosition = HighTile

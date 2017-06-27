@@ -11,41 +11,41 @@ import CoreData
 
 class ModelController: NSObject {
     
-    lazy var relativeDate: NSDate = {
+    lazy var relativeDate: Date = {
         let dateStr = "20160101"
-        let dateFormatter = NSDateFormatter()
+        let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyyMMdd"
         
-        return dateFormatter.dateFromString(dateStr)!
+        return dateFormatter.date(from: dateStr)!
     }()
 
     // MARK: - Core Data stack
     
-    lazy var applicationDocumentsDirectory: NSURL = {
+    lazy var applicationDocumentsDirectory: URL = {
         // The directory the application uses to store the Core Data store file. This code uses a directory named "edu.bolo.www.TestCoreData" in the application's documents Application Support directory.
-        let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
+        let urls = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         return urls[urls.count-1]
     }()
     
     lazy var managedObjectModel: NSManagedObjectModel = {
         // The managed object model for the application. This property is not optional. It is a fatal error for the application not to be able to find and load its model.
-        let modelURL = NSBundle.mainBundle().URLForResource("Model", withExtension: "momd")!
-        return NSManagedObjectModel(contentsOfURL: modelURL)!
+        let modelURL = Bundle.main.url(forResource: "Model", withExtension: "momd")!
+        return NSManagedObjectModel(contentsOf: modelURL)!
     }()
     
     lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator = {
         // The persistent store coordinator for the application. This implementation creates and returns a coordinator, having added the store for the application to it. This property is optional since there are legitimate error conditions that could cause the creation of the store to fail.
         // Create the coordinator and store
         let coordinator = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
-        let url = self.applicationDocumentsDirectory.URLByAppendingPathComponent("Fake2048.sqlite")
+        let url = self.applicationDocumentsDirectory.appendingPathComponent("Fake2048.sqlite")
         var failureReason = "There was an error creating or loading the application's saved data."
         do {
-            try coordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil)
+            try coordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
         } catch {
             // Report any error we got.
             var dict = [String: AnyObject]()
-            dict[NSLocalizedDescriptionKey] = "Failed to initialize the application's saved data"
-            dict[NSLocalizedFailureReasonErrorKey] = failureReason
+            dict[NSLocalizedDescriptionKey] = "Failed to initialize the application's saved data" as AnyObject
+            dict[NSLocalizedFailureReasonErrorKey] = failureReason as AnyObject
             
             dict[NSUnderlyingErrorKey] = error as NSError
             let wrappedError = NSError(domain: "YOUR_ERROR_DOMAIN", code: 9999, userInfo: dict)
@@ -61,7 +61,7 @@ class ModelController: NSObject {
     lazy var managedObjectContext: NSManagedObjectContext = {
         // Returns the managed object context for the application (which is already bound to the persistent store coordinator for the application.) This property is optional since there are legitimate error conditions that could cause the creation of the context to fail.
         let coordinator = self.persistentStoreCoordinator
-        var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+        var managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         managedObjectContext.persistentStoreCoordinator = coordinator
         return managedObjectContext
     }()
@@ -91,26 +91,26 @@ extension ModelController {
      
      - parameter tileMap:	当前状态
      */
-    func saveGame(c: GameContext) {
-        let record = NSEntityDescription.insertNewObjectForEntityForName("History", inManagedObjectContext: self.managedObjectContext) as! History
+    func saveGame(_ c: GameContext) {
+        let record = NSEntityDescription.insertNewObject(forEntityName: "History", into: self.managedObjectContext) as! History
         // 这个没法设置自增长id，我们取2016年以来的时间戳，这样一方面是增长的，一方面不会溢出
-        record.id = NSDate().timeIntervalSinceDate(relativeDate)
-        record.create_date = NSDate()
-        record.modify_date = NSDate()
-        record.dimension = c.dimension
+        record.id = Date().timeIntervalSince(relativeDate) as NSNumber
+        record.create_date = Date()
+        record.modify_date = Date()
+        record.dimension = c.dimension as NSNumber
         // ','分割的字符串
-        record.tile_map = c.tileMap.reduce("", combine: { (sum, ele) -> String in
-            return sum + ele.reduce("", combine: { $0 + "\($1)," })
+        record.tile_map = c.tileMap.reduce("", { (sum, ele) -> String in
+            return sum + ele.reduce("", { $0 + "\($1)," })
         })
         // 截屏
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let window = appDelegate.window!
         UIGraphicsBeginImageContext(window.frame.size)
-        window.drawViewHierarchyInRect(window.frame, afterScreenUpdates: true)
+        window.drawHierarchy(in: window.frame, afterScreenUpdates: true)
         let screenShot = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         
-        record.screen_shot = UIImageJPEGRepresentation(screenShot, 1)
+        record.screen_shot = UIImageJPEGRepresentation(screenShot!, 1)
         
         // 保存
         saveContext()
@@ -122,9 +122,9 @@ extension ModelController {
      - returns: 历史记录
      */
     func fetchRecords() -> [History] {
-        let fetch = NSFetchRequest(entityName: "History")
+        let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: "History")
         do {
-            return try managedObjectContext.executeFetchRequest(fetch) as! [History]
+            return try managedObjectContext.fetch(fetch) as! [History]
         } catch {
             fatalError("Failed to fetch employees: \(error)")
         }
@@ -135,8 +135,8 @@ extension ModelController {
      
      - parameter record:	目标记录
      */
-    func deleteRecord(record: History) {
-        managedObjectContext.deleteObject(record)
+    func deleteRecord(_ record: History) {
+        managedObjectContext.delete(record)
         
         saveContext()
     }

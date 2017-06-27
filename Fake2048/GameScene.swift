@@ -28,11 +28,11 @@ protocol GameDelegateProtocol {
 /// 游戏状态
 enum GameStatus {
     /// 还没开始
-    case GameNotStart
+    case gameNotStart
     /// 游戏中
-    case GameProcess
+    case gameProcess
     /// 完蛋了
-    case GameOver
+    case gameOver
 }
 
 /// 游戏配置上下文
@@ -43,7 +43,7 @@ struct GameContext {
     var dimension: Int
     
     /// 游戏状态
-    var status: GameStatus = .GameNotStart
+    var status: GameStatus = .gameNotStart
     /// 已进行步数
     var stepCount: Int = 0
     /// 分数
@@ -51,13 +51,13 @@ struct GameContext {
     
     init(dimension: Int = 4) {
         self.dimension = dimension
-        tileMap = Array<[Int]>(count: dimension, repeatedValue: Array<Int>(count: dimension, repeatedValue: 0))
+        tileMap = Array<[Int]>(repeating: Array<Int>(repeating: 0, count: dimension), count: dimension)
     }
     
     init(record: History) {
-        self.dimension = record.dimension!.integerValue
+        self.dimension = record.dimension!.intValue
         // 根据 "," 分割字符串，将分隔后的字符串强转 Int
-        let tileMap1 = record.tile_map!.characters.split(",").map { Int(String($0))! }
+        let tileMap1 = record.tile_map!.characters.split(separator: ",").map { Int(String($0))! }
         // [Int] -> [[Int]]
         var tileMap2: [[Int]] = []
         for i in 0..<dimension {
@@ -79,7 +79,7 @@ class GameScene: SKScene {
     var inAnimation = false
     
     /// 同步动画组序列
-    lazy var animationGroup = dispatch_group_create()
+    lazy var animationGroup = DispatchGroup()
     
     // TODO: 使用 GameStatus 代替
     var hasStartGame: Bool = false
@@ -113,12 +113,12 @@ class GameScene: SKScene {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func didMoveToView(view: SKView) {
+    override func didMove(to view: SKView) {
         addDecorateNode()
         initGame()
     }
    
-    override func update(currentTime: CFTimeInterval) {
+    override func update(_ currentTime: TimeInterval) {
         /* Called before each frame is rendered */
     }
     
@@ -128,12 +128,12 @@ class GameScene: SKScene {
     func addDecorateNode() {
         self.backgroundColor = SKColor(white: 247 / 255.0, alpha: 1)
         // 屏幕尺寸
-        let screenSize = UIScreen.mainScreen().bounds.size
+        let screenSize = UIScreen.main.bounds.size
         
         // 游戏区域划分：正方形主要游戏区域在中间，剩下高度，2/3在上，1/3在下
         var boardRect = CGRect(x: -screenSize.width / 2, y: -screenSize.width / 2, width: screenSize.width, height: screenSize.width)
         // 缩进
-        boardRect.insetInPlace(dx: 15, dy: 15)
+        boardRect = boardRect.insetBy(dx: 15, dy: 15)
         tileBoard = SKShapeNode(rect: boardRect, cornerRadius: 5)
         tileBoard.fillColor = SKColor(red: 174 / 255.0, green: 159 / 255.0, blue: 143 / 255.0, alpha: 1)
         tileBoard.position = CGPoint(x: screenSize.width / 2, y: (screenSize.height - screenSize.width) / 3 + screenSize.width / 2)
@@ -144,8 +144,8 @@ class GameScene: SKScene {
         gameNameLabel.fontSize = 35
         gameNameLabel.fontName = "Arial-BoldMT"
         gameNameLabel.fontColor = SKColor(red: 99 / 255.0, green: 91 / 255.0, blue: 82 / 255.0, alpha: 1)
-        gameNameLabel.verticalAlignmentMode = .Center
-        gameNameLabel.horizontalAlignmentMode = .Left
+        gameNameLabel.verticalAlignmentMode = .center
+        gameNameLabel.horizontalAlignmentMode = .left
         gameNameLabel.position = CGPoint(x: 15, y: screenSize.height - (screenSize.height - screenSize.width) / 3)
         self.addChild(gameNameLabel)
         
@@ -153,8 +153,8 @@ class GameScene: SKScene {
         gameBrief.fontSize = 12
         gameBrief.fontName = "ArialMT"
         gameBrief.fontColor = SKColor(red: 99 / 255.0, green: 91 / 255.0, blue: 82 / 255.0, alpha: 1)
-        gameBrief.verticalAlignmentMode = .Center
-        gameBrief.horizontalAlignmentMode = .Left
+        gameBrief.verticalAlignmentMode = .center
+        gameBrief.horizontalAlignmentMode = .left
         gameBrief.position = CGPoint(x: gameNameLabel.position.x, y: screenSize.height - (screenSize.height - screenSize.width) / 2)
         self.addChild(gameBrief)
         
@@ -168,18 +168,18 @@ class GameScene: SKScene {
         let startLabel = SKLabelNode(text: "Start Game")
         startLabel.fontSize = 12
         startLabel.fontName = "Arial-BoldMT"
-        startLabel.fontColor = SKColor.whiteColor()
-        startLabel.verticalAlignmentMode = .Center
-        startLabel.position = CGPointZero
+        startLabel.fontColor = SKColor.white
+        startLabel.verticalAlignmentMode = .center
+        startLabel.position = CGPoint.zero
         startMenu.addChild(startLabel)
         
         if showTinyMap {
             tinyMap = SKLabelNode(text: nil)
             tinyMap.fontSize = 10
             tinyMap.fontName = "ArialMT"
-            tinyMap.fontColor = SKColor.blackColor()
-            tinyMap.verticalAlignmentMode = .Center
-            tinyMap.horizontalAlignmentMode = .Left
+            tinyMap.fontColor = SKColor.black
+            tinyMap.verticalAlignmentMode = .center
+            tinyMap.horizontalAlignmentMode = .left
             tinyMap.position = CGPoint(x: gameNameLabel.position.x, y: (screenSize.height - screenSize.width) / 6)
             self.addChild(tinyMap)
         }
@@ -188,30 +188,30 @@ class GameScene: SKScene {
         loadMenu = SKShapeNode(rect: CGRect(x: -37.5, y: -10, width: 75, height: 20), cornerRadius: 2)
         loadMenu.strokeColor = SKColor(red: 124 / 255.0, green: 103 / 255.0, blue: 83 / 255.0, alpha: 1)
         loadMenu.fillColor = loadMenu.strokeColor
-        loadMenu.position = CGPoint(x: 15 + CGRectGetWidth(loadMenu.frame) * 0.5, y: (screenSize.height - screenSize.width) / 3 - 20)
+        loadMenu.position = CGPoint(x: 15 + loadMenu.frame.width * 0.5, y: (screenSize.height - screenSize.width) / 3 - 20)
         self.addChild(loadMenu)
         
         let loadLabel = SKLabelNode(text: "Load Game")
         loadLabel.fontSize = 12
         loadLabel.fontName = "Arial-BoldMT"
-        loadLabel.fontColor = SKColor.whiteColor()
-        loadLabel.verticalAlignmentMode = .Center
-        loadLabel.position = CGPointZero
+        loadLabel.fontColor = SKColor.white
+        loadLabel.verticalAlignmentMode = .center
+        loadLabel.position = CGPoint.zero
         loadMenu.addChild(loadLabel)
         
         // 保存游戏
         saveMenu = SKShapeNode(rect: CGRect(x: -37.5, y: -10, width: 75, height: 20), cornerRadius: 2)
         saveMenu.strokeColor = SKColor(red: 124 / 255.0, green: 103 / 255.0, blue: 83 / 255.0, alpha: 1)
         saveMenu.fillColor = saveMenu.strokeColor
-        saveMenu.position = CGPoint(x: screenSize.width - 15 - CGRectGetWidth(saveMenu.frame) * 0.5, y: loadMenu.position.y)
+        saveMenu.position = CGPoint(x: screenSize.width - 15 - saveMenu.frame.width * 0.5, y: loadMenu.position.y)
         self.addChild(saveMenu)
         
         let saveLabel = SKLabelNode(text: "Save Game")
         saveLabel.fontSize = 12
         saveLabel.fontName = "Arial-BoldMT"
-        saveLabel.fontColor = SKColor.whiteColor()
-        saveLabel.verticalAlignmentMode = .Center
-        saveLabel.position = CGPointZero
+        saveLabel.fontColor = SKColor.white
+        saveLabel.verticalAlignmentMode = .center
+        saveLabel.position = CGPoint.zero
         saveMenu.addChild(saveLabel)
     }
     
@@ -233,7 +233,7 @@ class GameScene: SKScene {
         // 重新开始
         if hasStartGame || gameOver {
             if gameOver {
-                self.childNodeWithName("gameover")?.removeFromParent()
+                self.childNode(withName: "gameover")?.removeFromParent()
             }
             tileBoard.removeAllChildren()
             
@@ -269,10 +269,10 @@ class GameScene: SKScene {
                 }
             }
         }
-        return remainRoom[random() % remainRoom.count]
+        return remainRoom[Int(arc4random()) % remainRoom.count]
     }
     
-    func tilePosition(x: Int, _ y: Int) -> CGPoint {
+    func tilePosition(_ x: Int, _ y: Int) -> CGPoint {
         /*** 数组方向是行列式方向
          | 11 12 13 14 |
          | 21 22 23 24 |
@@ -375,26 +375,26 @@ class GameScene: SKScene {
 
 extension GameScene {
     
-    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         // 反正不支持多点触控，直接取第一个触摸点
         guard let touch = touches.first else {
             return
         }
         // 找到触摸点
-        let touchPoint = touch.locationInNode(self)
+        let touchPoint = touch.location(in: self)
         // 是开始按钮
-        if startMenu.containsPoint(touchPoint) {
+        if startMenu.contains(touchPoint) {
             startGame()
-        } else if saveMenu.containsPoint(touchPoint) {
+        } else if saveMenu.contains(touchPoint) {
             if !hasStartGame || gameOver {
                 return
             }
-            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
             appDelegate.modelController.saveGame(context)
             
             // 数据源是由自己管理的，外层controller不好处理。姑且通知下
             gameDelegate.saveGameDelegate()
-        } else if loadMenu.containsPoint(touchPoint) {
+        } else if loadMenu.contains(touchPoint) {
             // 什么都不做，由外层controller处理
             gameDelegate.loadGameDelegate()
         }
@@ -402,9 +402,9 @@ extension GameScene {
     }
     
     // 后退一步
-    func restoreLastStep(state: [[Int]]) {
+    func restoreLastStep(_ state: [[Int]]) {
         let snapShot = context.tileMap
-        self.view?.undoManager?.registerUndoWithTarget(self, selector: #selector(GameScene.restoreLastStep(_:)), object: snapShot);
+        self.view?.undoManager?.registerUndo(withTarget: self, selector: #selector(GameScene.restoreLastStep(_:)), object: snapShot);
         
         tileBoard.removeAllChildren()
         
@@ -435,18 +435,18 @@ extension GameScene {
 
 extension GameScene: GameActionProtocol {
     
-    func swipeGesture(direction: UISwipeGestureRecognizerDirection) {
+    func swipeGesture(_ direction: UISwipeGestureRecognizerDirection) {
         
         // 变换坐标。这个变换是可逆的，变过去或变回来是同一个变换
         let transformPosition = {
             [unowned self] (x: Int, y: Int) -> (Int, Int) in
-            if direction == .Left {
+            if direction == .left {
                 // 无需变换
                 return (x, y)
-            } else if direction == .Right {
+            } else if direction == .right {
                 // 子数组倒序
                 return (x, self.context.dimension - 1 - y)
-            } else if direction == .Up {
+            } else if direction == .up {
                 // 旋转
                 return (self.context.dimension - 1 - y, x)
             } else {
@@ -456,13 +456,13 @@ extension GameScene: GameActionProtocol {
         }
         let transformPositionReverse = {
             [unowned self] (x: Int, y: Int) -> (Int, Int) in
-            if direction == .Left {
+            if direction == .left {
                 // 无需变换
                 return (x, y)
-            } else if direction == .Right {
+            } else if direction == .right {
                 // 子数组倒序
                 return (x, self.context.dimension - 1 - y)
-            } else if direction == .Up {
+            } else if direction == .up {
                 // 旋转
                 return (y, self.context.dimension - 1 - x)
             } else {
@@ -478,7 +478,7 @@ extension GameScene: GameActionProtocol {
         // 方向向左时，二重循环访问的元素是正确的坐标，其他方向时访问坐标不对。我们对数组做对应变换
         var transformMap = context.tileMap
         // 方向向左时，不需要变换
-        if direction != .Left {
+        if direction != .left {
             for i in 0..<context.dimension {
                 for j in 0..<context.dimension {
                     let tp = transformPosition(i, j)
@@ -497,7 +497,7 @@ extension GameScene: GameActionProtocol {
             // 行状态表
             var statusMap = transformMap[i]
             // 升级表
-            var levelUpMap: [Bool] = Array<Bool>(count: context.dimension, repeatedValue: false)
+            var levelUpMap: [Bool] = Array<Bool>(repeating: false, count: context.dimension)
             var hasRowAction = false
             for j in 0..<context.dimension {
                 // 第一个方块不会移动，没有方块不用理会
@@ -529,7 +529,7 @@ extension GameScene: GameActionProtocol {
                 hasRowAction = true
                 hasAction = true
                 
-                dispatch_group_enter(self.animationGroup)
+                self.animationGroup.enter()
                 
                 // 当前方块。地图数组已经经过变换，但元素名没有经过变换，要定位回去
                 let transformP = transformPositionReverse(i, j)
@@ -537,20 +537,20 @@ extension GameScene: GameActionProtocol {
                 let transformDstP = transformPositionReverse(i, moveDst)
                 let transformDstPos = tilePosition(transformDstP.0, transformDstP.1)
                 // 移动方块
-                let t = tileBoard.childNodeWithName("\(transformP.0),\(transformP.1)") as! NumTile
+                let t = tileBoard.childNode(withName: "\(transformP.0),\(transformP.1)") as! NumTile
                 // 移动时间。保持所有动作速度相同
-                let moveDuration: NSTimeInterval = NSTimeInterval((fabs(t.position.x - transformDstPos.x) + fabs(t.position.y - transformDstPos.y)) / moveSpeed)
+                let moveDuration: TimeInterval = TimeInterval((fabs(t.position.x - transformDstPos.x) + fabs(t.position.y - transformDstPos.y)) / moveSpeed)
                 // 能升级时，移动的方块是要在升级方块之下的，升级的动作由不动的方块执行
                 if canLevelUp {
                     // 待升级方块
-                    let lt = tileBoard.childNodeWithName("\(transformDstP.0),\(transformDstP.1)") as! NumTile
+                    let lt = tileBoard.childNode(withName: "\(transformDstP.0),\(transformDstP.1)") as! NumTile
                     // 更改层次结构
                     t.zPosition = MidTile
                     // 移动到目的地后直接移除掉。然后升级
-                    t.runAction(SKAction.moveTo(tilePosition(transformDstP.0, transformDstP.1), duration: moveDuration), completion: { () -> Void in
+                    t.run(SKAction.move(to: tilePosition(transformDstP.0, transformDstP.1), duration: moveDuration), completion: { () -> Void in
                         lt.levelUp()
                         t.removeFromParent()
-                        dispatch_group_leave(self.animationGroup)
+                        self.animationGroup.leave()
                     })
                     /** 修改名字。这里总算明白这个bug了。假设有某串数字是这样的"2, 2, 1, 1"，如果这里不修改名字，会产生这样一个bug:
                         1、第二个2与第一个2合并，忘了修改名字，第二个2名字序号依然是1
@@ -560,8 +560,8 @@ extension GameScene: GameActionProtocol {
                     t.name = "-1,-1"
                 } else {
                     // 移动到目的地
-                    t.runAction(SKAction.moveTo(tilePosition(transformDstP.0, transformDstP.1), duration: moveDuration), completion: { () -> Void in
-                        dispatch_group_leave(self.animationGroup)
+                    t.run(SKAction.move(to: tilePosition(transformDstP.0, transformDstP.1), duration: moveDuration), completion: { () -> Void in
+                        self.animationGroup.leave()
                     })
                     // 修改名字。这个是立即执行的
                     t.name = "\(transformDstP.0),\(transformDstP.1)"
@@ -576,7 +576,7 @@ extension GameScene: GameActionProtocol {
             }
             if hasRowAction {
                 // 修改地图状态
-                var finalRow: [Int] = Array<Int>(count: context.dimension, repeatedValue: 0)
+                var finalRow: [Int] = Array<Int>(repeating: 0, count: context.dimension)
                 for l in 0..<context.dimension {
                     finalRow[l] = levelUpMap[l] ? statusMap[l] + 1 : statusMap[l]
                 }
@@ -585,9 +585,9 @@ extension GameScene: GameActionProtocol {
         }
         if hasAction {
             // 注册undo操作
-            self.view?.undoManager?.registerUndoWithTarget(self, selector: #selector(GameScene.restoreLastStep(_:)), object: snapShot)
+            self.view?.undoManager?.registerUndo(withTarget: self, selector: #selector(GameScene.restoreLastStep(_:)), object: snapShot)
             // 恢复变换
-            if direction == .Left {
+            if direction == .left {
                 context.tileMap = transformMap
             } else {
                 for i in 0..<context.dimension {
@@ -599,7 +599,7 @@ extension GameScene: GameActionProtocol {
             }
             self.inAnimation = true
             // 所有动作结束后添加新方块
-            dispatch_group_notify(self.animationGroup, dispatch_get_main_queue(), {
+            self.animationGroup.notify(queue: DispatchQueue.main, execute: {
                 self.inAnimation = false
                 self.addNewTile()
                 if self.detectGameOver() {
@@ -607,9 +607,9 @@ extension GameScene: GameActionProtocol {
                     gameOver.fontSize = 35
                     gameOver.name = "gameover"
                     gameOver.fontName = "Arial-BoldMT"
-                    gameOver.fontColor = SKColor.redColor()
-                    gameOver.verticalAlignmentMode = .Center
-                    gameOver.horizontalAlignmentMode = .Center
+                    gameOver.fontColor = SKColor.red
+                    gameOver.verticalAlignmentMode = .center
+                    gameOver.horizontalAlignmentMode = .center
                     gameOver.position = CGPoint(x: self.size.width / 2, y: (self.size.height - self.size.width) / 6)
                     self.addChild(gameOver)
                     
@@ -619,7 +619,7 @@ extension GameScene: GameActionProtocol {
         }
     }
     
-    func loadGame(c: GameContext) {
+    func loadGame(_ c: GameContext) {
         // 清理后退栈
         self.view?.undoManager?.removeAllActions()
         

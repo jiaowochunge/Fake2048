@@ -20,11 +20,11 @@ class SaveGameCollectionViewCell: UICollectionViewCell {
     var record: History? {
         set {
             if let h = newValue {
-                screenShot.image = UIImage(data: h.screen_shot!)
+                screenShot.image = UIImage(data: h.screen_shot! as Data)
                 
-                let dateFormatter = NSDateFormatter()
+                let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "yyyy-MM-dd hh:mm"
-                modifyTime.text = dateFormatter.stringFromDate(h.modify_date!)
+                modifyTime.text = dateFormatter.string(from: h.modify_date! as Date)
             } else {
                 screenShot.image = nil
                 modifyTime.text = nil

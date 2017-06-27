@@ -11,9 +11,9 @@ import SpriteKit
 
 protocol GameActionProtocol {
     
-    func swipeGesture(direction: UISwipeGestureRecognizerDirection)
+    func swipeGesture(_ direction: UISwipeGestureRecognizerDirection)
     
-    func loadGame(c: GameContext)
+    func loadGame(_ c: GameContext)
     
 }
 
@@ -35,7 +35,7 @@ class GameViewController: UIViewController {
         skView.ignoresSiblingOrder = true
         
         /* Set the scale mode to scale to fit the window */
-        scene.scaleMode = .AspectFill
+        scene.scaleMode = .aspectFill
     
         skView.presentScene(scene)
         
@@ -44,28 +44,28 @@ class GameViewController: UIViewController {
         
         // 添加手势
         let leftSwipe = UISwipeGestureRecognizer(target: self, action: #selector(GameViewController.swipeLeft(_:)))
-        leftSwipe.direction = [.Left, .Right]
+        leftSwipe.direction = [.left, .right]
         skView.addGestureRecognizer(leftSwipe)
         let rightSwipe = UISwipeGestureRecognizer(target: self, action: #selector(GameViewController.swipeRight(_:)))
-        rightSwipe.direction = .Right
+        rightSwipe.direction = .right
         skView.addGestureRecognizer(rightSwipe)
         let upSwipe = UISwipeGestureRecognizer(target: self, action: #selector(GameViewController.swipeUp(_:)))
-        upSwipe.direction = [.Up, .Down]
+        upSwipe.direction = [.up, .down]
         skView.addGestureRecognizer(upSwipe)
         let downSwipe = UISwipeGestureRecognizer(target: self, action: #selector(GameViewController.swipeDown(_:)))
-        downSwipe.direction = .Down
+        downSwipe.direction = .down
         skView.addGestureRecognizer(downSwipe)
     }
 
-    override func shouldAutorotate() -> Bool {
+    override var shouldAutorotate : Bool {
         return true
     }
 
-    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        if UIDevice.currentDevice().userInterfaceIdiom == .Phone {
-            return .AllButUpsideDown
+    override var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return .allButUpsideDown
         } else {
-            return .All
+            return .all
         }
     }
 
@@ -74,20 +74,20 @@ class GameViewController: UIViewController {
         // Release any cached data, images, etc that aren't in use.
     }
 
-    override func prefersStatusBarHidden() -> Bool {
+    override var prefersStatusBarHidden : Bool {
         return true
     }
     
-    override func canBecomeFirstResponder() -> Bool {
+    override var canBecomeFirstResponder : Bool {
         return true
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.becomeFirstResponder()
     }
     
-    override func viewDidDisappear(animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         self.resignFirstResponder()
     }
@@ -95,20 +95,20 @@ class GameViewController: UIViewController {
 
 extension GameViewController {
     
-    func swipeLeft(gesture: UIGestureRecognizer) {
-        delegate?.swipeGesture(.Left)
+    func swipeLeft(_ gesture: UIGestureRecognizer) {
+        delegate?.swipeGesture(.left)
     }
     
-    func swipeRight(gesture: UIGestureRecognizer) {
-        delegate?.swipeGesture(.Right)
+    func swipeRight(_ gesture: UIGestureRecognizer) {
+        delegate?.swipeGesture(.right)
     }
     
-    func swipeUp(gesture: UIGestureRecognizer) {
-        delegate?.swipeGesture(.Up)
+    func swipeUp(_ gesture: UIGestureRecognizer) {
+        delegate?.swipeGesture(.up)
     }
     
-    func swipeDown(gesture: UIGestureRecognizer) {
-        delegate?.swipeGesture(.Down)
+    func swipeDown(_ gesture: UIGestureRecognizer) {
+        delegate?.swipeGesture(.down)
     }
     
 }
@@ -125,7 +125,7 @@ extension GameViewController: GameDelegateProtocol {
             (record: History) in
             self.delegate?.loadGame(GameContext(record: record))
         }
-        self.presentViewController(vc, animated: true, completion: nil)
+        self.present(vc, animated: true, completion: nil)
     }
     
 }

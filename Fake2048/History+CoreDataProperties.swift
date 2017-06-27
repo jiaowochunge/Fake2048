@@ -15,9 +15,9 @@ import CoreData
 extension History {
 
     @NSManaged var id: NSNumber?
-    @NSManaged var create_date: NSDate?
-    @NSManaged var modify_date: NSDate?
-    @NSManaged var screen_shot: NSData?
+    @NSManaged var create_date: Date?
+    @NSManaged var modify_date: Date?
+    @NSManaged var screen_shot: Data?
     @NSManaged var tile_map: String?
     @NSManaged var dimension: NSNumber?
 
